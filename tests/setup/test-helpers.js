@@ -16,7 +16,9 @@ export class TestEnvironment {
   }
 
   async setup() {
-    this.tempDir = temporaryDirectory;
+    // Create a unique temp directory for this test
+    const tempBase = temporaryDirectory;
+    this.tempDir = await fs.mkdtemp(path.join(tempBase, "uniweb-test-"));
     process.chdir(this.tempDir);
     return this.tempDir;
   }
