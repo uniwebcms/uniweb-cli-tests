@@ -7,5 +7,7 @@ export default defineConfig({
     testTimeout: 30000,
     setupFiles: ["./tests/setup/test-helpers.js"],
     reporters: ["verbose"],
+    globals: true,
+    environment: "node",
   },
 });
