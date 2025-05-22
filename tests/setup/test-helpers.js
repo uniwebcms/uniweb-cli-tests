@@ -206,6 +206,9 @@ export class TestEnvironment {
     if (options.module) args.push("--module", options.module);
     if (options.site) args.push("--site", options.site);
 
+    // Enable dev mode
+    args.push("--dev");
+
     await this.expectCommandSuccess(args);
     if (name !== ".") {
       process.chdir(name);
