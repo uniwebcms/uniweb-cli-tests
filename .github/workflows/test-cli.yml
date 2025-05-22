@@ -1,0 +1,128 @@
+# CI/CD Configuration (.github/workflows/test-cli.yml)
+name: Uniweb CLI Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install CLI globally
+        run: npm install -g @uniwebcms/toolkit
+
+      - name: Install test dependencies
+        run: |
+          cd test-project
+          npm install
+
+      - name: Run unit tests
+        run: |
+          cd test-project
+          npm run test:unit
+
+      - name: Run integration tests
+        run: |
+          cd test-project
+          npm run test:integration
+
+      - name: Validate exercises
+        run: |
+          cd test-project
+          npm run validate-exercises
+
+      - name: Run performance benchmarks
+        run: |
+          cd test-project
+          npm run benchmark
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.node-version }}
+          path: test-project/test-results.xml
+
+  exercise-validation:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install CLI globally
+        run: npm install -g @uniwebcms/toolkit
+
+      - name: Test Exercise 1 (Portfolio)
+        run: |
+          mkdir exercise-1-test
+          cd exercise-1-test
+
+          # Follow exact exercise steps
+          uniweb init my-portfolio --single-site
+          cd my-portfolio
+
+          # Mock component library for testing
+          mkdir -p node_modules/@uniwebcms
+          echo '{"name": "portfolio-components", "version": "1.0.0"}' > node_modules/@uniwebcms/portfolio-components.json
+
+          uniweb add page about
+          uniweb add page projects
+          uniweb add section hero --page index
+          uniweb add section skills --page about
+
+          # Verify structure
+          test -f pages/index/hero.md || (echo "❌ Exercise 1 failed: hero.md not found" && exit 1)
+          test -f pages/about/skills.md || (echo "❌ Exercise 1 failed: skills.md not found" && exit 1)
+          test -f pages/projects/page.yml || (echo "❌ Exercise 1 failed: projects page not found" && exit 1)
+
+          echo "✅ Exercise 1 completed successfully!"
+
+      - name: Test Exercise 2 (Multilingual)
+        run: |
+          mkdir exercise-2-test
+          cd exercise-2-test
+
+          uniweb init marketing-site --single-site
+          cd marketing-site
+
+          uniweb add page products
+          uniweb add page about
+          uniweb add locale fr,es
+          uniweb add section hero --page index
+          uniweb add section showcase --page products
+
+          # Test content setting
+          uniweb set section hero --body "# Welcome\n\nGreat content here"
+          uniweb set section hero --locale fr --body "# Bienvenue\n\nExcellent contenu ici"
+
+          # Verify multilingual structure
+          test -f pages/index/hero.md || (echo "❌ Exercise 2 failed: main hero.md not found" && exit 1)
+          test -f locales/fr/pages/index/hero.md || (echo "❌ Exercise 2 failed: French hero.md not found" && exit 1)
+          grep -q "Welcome" pages/index/hero.md || (echo "❌ Exercise 2 failed: English content not found" && exit 1)
+          grep -q "Bienvenue" locales/fr/pages/index/hero.md || (echo "❌ Exercise 2 failed: French content not found" && exit 1)
+
+          echo "✅ Exercise 2 completed successfully!"

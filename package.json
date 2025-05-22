@@ -1,0 +1,28 @@
+{
+  "name": "uniweb-cli-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "test:unit": "vitest tests/unit/",
+    "test:integration": "vitest tests/integration/",
+    "test:exercises": "vitest tests/exercises/",
+    "test:performance": "vitest tests/performance/",
+    "test:coverage": "vitest --coverage",
+    "test:reporter": "vitest --reporter=verbose --reporter=junit --outputFile=test-results.xml",
+    "test:ci": "vitest run --reporter=verbose --coverage",
+    "validate-exercises": "vitest tests/exercises/ --reporter=verbose",
+    "benchmark": "vitest tests/performance/ --reporter=verbose"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "execa": "^8.0.0",
+    "fs-extra": "^11.0.0",
+    "temp-dir": "^3.0.0",
+    "yaml": "^2.3.0"
+  }
+}
