@@ -28,9 +28,6 @@ cd uniweb-cli-tests
 
 # Install dependencies
 npm install
-
-# Run all tests
-npm test
 ```
 
 ### Verify Installation

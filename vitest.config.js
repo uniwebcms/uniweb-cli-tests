@@ -9,5 +9,11 @@ export default defineConfig({
     reporters: ["verbose"],
     globals: true,
     environment: "node",
+    pool: "forks", // Use child processes instead of workers
+    poolOptions: {
+      forks: {
+        singleFork: false, // Allow multiple processes for parallel tests
+      },
+    },
   },
 });

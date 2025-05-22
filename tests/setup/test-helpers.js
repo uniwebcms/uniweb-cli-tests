@@ -2,7 +2,7 @@
 import { execa } from "execa";
 import fs from "fs-extra";
 import path from "path";
-import { temporaryDirectory } from "temp-dir";
+import temporaryDirectory from "temp-dir";
 import { fileURLToPath } from "url";
 import yaml from "yaml";
 import { expect } from "vitest";
@@ -16,7 +16,7 @@ export class TestEnvironment {
   }
 
   async setup() {
-    this.tempDir = await temporaryDirectory();
+    this.tempDir = temporaryDirectory;
     process.chdir(this.tempDir);
     return this.tempDir;
   }
