@@ -43,6 +43,105 @@ uniweb --version
 npm run test:unit
 ```
 
+## Usage Examples
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test categories
+npm run test:unit
+npm run test:integration
+npm run test:exercises
+
+# Run in watch mode during development
+npm run test:watch
+
+# Run with UI for visual debugging
+npm run test:ui
+
+# Validate that exercises work
+npm run validate-exercises
+
+# Run performance benchmarks
+npm run benchmark
+```
+
+## File Structure
+
+```
+tests/
+├── setup/
+│   ├── test-helpers.js           # Base TestEnvironment class
+│   ├── additional-helpers.js     # Extensions and helper classes
+│   └── enhanced-test-helpers.js  # Simple loader that combines everything
+├── unit/
+│   └── init.test.js              # Individual command tests
+├── integration/
+│   └── comprehensive-workflow.test.js  # Full workflow tests
+├── exercises/
+│   └── exercise-validation.test.js     # Exercise validation
+└── performance/
+    └── benchmark.test.js         # Performance tests
+package.json                      # Dependencies and scripts
+vitest.config.js                  # Test configuration
+```
+
+## Key Features of This Testing Setup
+
+### **1. Fluent API for Readable Tests**
+
+```javascript
+await env
+  .initProject("my-portfolio", { singleSite: true })
+  .addPage("about")
+  .addSection("hero", { page: "about" })
+  .setSection("hero", "# About Me\n\nContent here", { page: "about" });
+```
+
+### **2. Rich Content Building**
+
+```javascript
+const content = env
+  .buildContent()
+  .component("HeroSection")
+  .param("theme", "dark")
+  .title("Welcome")
+  .paragraph("Great content")
+  .link("Get Started", "/start", { "button-primary": true })
+  .build();
+```
+
+### **3. Assertion Chaining**
+
+```javascript
+await env
+  .assert()
+  .fileExists("pages/index/hero.md")
+  .fileContains("pages/index/hero.md", "Welcome")
+  .yamlProperty("pages/index/page.yml", "sections", ["hero"])
+  .verify();
+```
+
+### **4. Performance Testing**
+
+```javascript
+const perf = env.performance();
+await perf.timeOperation("page-creation", () => env.addPage("test"));
+perf.expectOperationFasterThan("page-creation", 1000);
+```
+
+### **5. Batch Operations**
+
+```javascript
+await env
+  .batch()
+  .addPage("about")
+  .addSection("hero", { page: "about" })
+  .setSection("hero", content, { page: "about" })
+  .execute();
+```
+
 ## Test Categories
 
 ### Unit Tests (`tests/unit/`)
