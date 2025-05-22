@@ -23,8 +23,15 @@ export class TestEnvironment {
 
   async cleanup() {
     if (this.tempDir) {
-      process.chdir(this.originalCwd);
-      await fs.remove(this.tempDir);
+      try {
+        process.chdir(this.originalCwd);
+        await fs.remove(this.tempDir);
+      } catch (error) {
+        console.warn(
+          `Warning: Could not clean up temp directory ${this.tempDir}: ${error.message}`
+        );
+        // Don't throw - cleanup issues shouldn't fail tests
+      }
     }
   }
 
@@ -68,20 +75,34 @@ export class TestEnvironment {
     const structure = {};
     const fullPath = path.join(this.tempDir, dir);
 
-    if (await fs.pathExists(fullPath)) {
-      const items = await fs.readdir(fullPath);
-      for (const item of items) {
-        const itemPath = path.join(fullPath, item);
-        const stats = await fs.stat(itemPath);
+    try {
+      if (await fs.pathExists(fullPath)) {
+        const items = await fs.readdir(fullPath);
+        for (const item of items) {
+          const itemPath = path.join(fullPath, item);
+          try {
+            const stats = await fs.stat(itemPath);
 
-        if (stats.isDirectory()) {
-          structure[item] = await this.getDirectoryStructure(
-            path.join(dir, item)
-          );
-        } else {
-          structure[item] = "file";
+            if (stats.isDirectory()) {
+              structure[item] = await this.getDirectoryStructure(
+                path.join(dir, item)
+              );
+            } else {
+              structure[item] = "file";
+            }
+          } catch (error) {
+            // Skip files/directories we can't access (permission issues)
+            console.warn(
+              `Warning: Could not access ${itemPath}: ${error.message}`
+            );
+            structure[item] = "inaccessible";
+          }
         }
       }
+    } catch (error) {
+      console.warn(
+        `Warning: Could not read directory ${fullPath}: ${error.message}`
+      );
     }
 
     return structure;
