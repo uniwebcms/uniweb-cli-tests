@@ -1,4 +1,3 @@
-# scripts/validate-single-exercise.sh
 #!/bin/bash
 set -e
 

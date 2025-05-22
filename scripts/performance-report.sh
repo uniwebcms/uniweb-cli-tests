@@ -1,4 +1,3 @@
-# scripts/performance-report.sh
 #!/bin/bash
 set -e
 

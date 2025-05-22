@@ -1,4 +1,3 @@
-# scripts/run-tests.sh
 #!/bin/bash
 set -e
 
