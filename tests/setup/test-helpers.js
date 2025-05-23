@@ -16,8 +16,8 @@ export class TestEnvironment {
   }
 
   async setup() {
-    // Create a unique temp directory for this test
-    const tempBase = temporaryDirectory;
+    const repoDir = path.resolve(__dirname, "../../.temp");
+    const tempBase = repoDir; //temporaryDirectory;
     this.tempDir = await fs.mkdtemp(path.join(tempBase, "uniweb-test-"));
     process.chdir(this.tempDir);
     return this.tempDir;
@@ -27,6 +27,7 @@ export class TestEnvironment {
     if (this.tempDir) {
       try {
         process.chdir(this.originalCwd);
+        // console.log(`Removing ${this.tempDir}...`);
         await fs.remove(this.tempDir);
       } catch (error) {
         console.warn(
@@ -38,9 +39,11 @@ export class TestEnvironment {
   }
 
   async runUniweb(args, options = {}) {
+    const cwd = process.cwd();
     try {
       const result = await execa("uniweb", args, {
-        cwd: this.tempDir,
+        // cwd: this.tempDir,
+        cwd: process.cwd(),
         ...options,
       });
       return {
@@ -60,12 +63,12 @@ export class TestEnvironment {
     }
   }
 
-  async fileExists(filePath) {
-    return fs.pathExists(path.join(this.tempDir, filePath));
+  async fileExists(filePath, baseDir = process.cwd()) {
+    return fs.pathExists(path.join(baseDir, filePath));
   }
 
-  async readFile(filePath) {
-    return fs.readFile(path.join(this.tempDir, filePath), "utf8");
+  async readFile(filePath, baseDir = process.cwd()) {
+    return fs.readFile(path.join(baseDir, filePath), "utf8");
   }
 
   async readYaml(filePath) {
@@ -73,9 +76,9 @@ export class TestEnvironment {
     return yaml.parse(content);
   }
 
-  async getDirectoryStructure(dir = ".") {
+  async getDirectoryStructure(dir = ".", baseDir = process.cwd()) {
     const structure = {};
-    const fullPath = path.join(this.tempDir, dir);
+    const fullPath = path.join(baseDir, dir);
 
     try {
       if (await fs.pathExists(fullPath)) {
@@ -114,6 +117,10 @@ export class TestEnvironment {
 
   async expectFileExists(filePath, message) {
     const exists = await this.fileExists(filePath);
+    // if (!exists) {
+    //   const contents = await fs.readdir(cwd);
+    //   console.log("Contents of CWD:", contents);
+    // }
     expect(exists, message || `Expected file ${filePath} to exist`).toBe(true);
   }
 
@@ -209,10 +216,17 @@ export class TestEnvironment {
     // Enable dev mode
     args.push("--dev");
 
+    process.chdir(this.tempDir);
+
     await this.expectCommandSuccess(args);
-    if (name !== ".") {
-      process.chdir(name);
-    }
+
+    this.cd(name, this.tempDir);
+
+    // if (name !== ".") {
+    //   console.log({ name });
+    //   // process.chdir(name);
+    //   this.cd(name, this.tempDir);
+    // }
     return this;
   }
 
@@ -318,8 +332,8 @@ export class TestEnvironment {
 
   // === FLUENT API HELPERS ===
 
-  cd(directory) {
-    process.chdir(path.join(this.tempDir, directory));
+  cd(directory, baseDir = process.cwd()) {
+    process.chdir(path.join(baseDir, directory));
     return this;
   }
 
